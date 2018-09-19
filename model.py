@@ -1,83 +1,105 @@
 import tensorflow as tf
 import numpy as np
-from tensorflow.examples.tutorials.mnist import input_data
+import time
+from dataset_util import read_data_sets
 
 class Model(object):
-    def __init__(self, learning_rate, epochs, batch_size, display_step, no_layers, no_nodes):
-        self.learning_rate = learning_rate
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.display_step = display_step
-        self.no_layers = no_layers
-        self.no_nodes = no_nodes
-        self.x = tf.placeholder(tf.float32, shape=[None, 784])
-        self.y = tf.placeholder(tf.float32, shape=[None, 10])
-        self.weights = list()
-        self.bias = []
-        self.activation_val = [self.x]
-        self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-
-    
-
-    def make_layer(self):
-        for p in range(self.no_layers-1):
-            self.weights.append(tf.Variable(tf.truncated_normal(shape=(self.no_nodes[p], self.no_nodes[p+1]), mean=0, stddev=0.1)))
-            self.bias.append(tf.Variable(tf.zeros(self.no_nodes[p+1])))
-            if p == 0:
-                linear_val = tf.matmul(self.x, self.weights[-1]) + self.bias[-1]
-            else:
-                linear_val = tf.matmul(self.activation_val[-1], self.weights[-1]) + self.bias[-1]
-            if p == self.no_layers-1:
-                self.activation_val.append(tf.nn.softmax(linear_val))
-            else:
-                self.activation_val.append(tf.nn.sigmoid(linear_val))
-        lr = tf.placeholder(tf.float32)
-
-        cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=linear_val, labels=self.y))
-
-        optimizer = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
-
-        correct_predictions = tf.equal(tf.argmax(self.activation_val[-1], 1), tf.argmax(self.y, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
-        self.run_session(cross_entropy, optimizer, accuracy, lr)
-
-    def run_session(self, cross_entropy, optimizer, accuracy, lr):
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-
-            print(f'''
-            Running session with:
-            Epochs: {self.epochs:>3d}
-            Learning Rate: {self.learning_rate:>6.3f}
-            Batch Size: {self.batch_size:>3d}''')
-
-            for epoch in range(self.epochs-1):
-                # print("Oye;oednf;jes[figjeokwvm['wiejrgfio")
-                for batch in range(self.mnist.train.num_examples//self.batch_size):
-                    x_train, y_train = self.mnist.train.next_batch(self.batch_size)
-                    # print(batch)
-                    feed_dict = {
-                        self.x : x_train,
-                        self.y : y_train,
-                        lr : self.learning_rate }
-                    _, loss = sess.run([optimizer, cross_entropy], feed_dict = feed_dict)
-
-                validation_acc = sess.run(accuracy, feed_dict= {
-                    self.x : self.mnist.validation.images,
-                    self.y : self.mnist.validation.labels})
-
-                print(f'Epoch: {epoch:>5d}; Loss: {loss: >10.3f}; Validation Accuracy: {validation_acc:>1.4f}')
+    with tf.Graph().as_default():
+        def __init__(self, learning_rate, no_layers, input_nodes, logits, no_nodes, data):
+            self.learning_rate = learning_rate
+            self.epochs = 5
+            self.batch_size = 100
+            self.display_step = 2
+            self.no_layers = no_layers
+            self.no_nodes = no_nodes
+            self.input_nodes = input_nodes
+            self.logits = logits
+            self.x = tf.placeholder(tf.float32, shape=[None, input_nodes])
+            self.y = tf.placeholder(tf.float32, shape=[None, logits])
+            self.weights = list()
+            self.bias = []
+            self.activation_val = [self.x]
+            self.mnist = data #read_data_sets("MNIST_data/", one_hot=True)
 
 
-            test_accuracy = sess.run(accuracy, feed_dict = {
-                self.x : self.mnist.test.images,
-                self.y : self.mnist.test.labels})
+        def make_layer(self):
+            for p in range(self.no_layers-1):
+                if p == 0:
+                    self.weights.append(tf.Variable(tf.truncated_normal(shape=(self.input_nodes, self.no_nodes[p]), mean=0, stddev=0.1)))
+                elif p == self.no_layers-2:
+                    self.weights.append(tf.Variable(tf.truncated_normal(shape=(self.no_nodes[p-1], self.logits), mean=0, stddev=0.1)))
+                else:
+                    self.weights.append(tf.Variable(tf.truncated_normal(shape=(self.no_nodes[p-1], self.no_nodes[p]), mean=0, stddev=0.1)))
+                
+                if p == self.no_layers-2:
+                    self.bias.append(tf.Variable(tf.zeros(self.logits)))
+                else:
+                    self.bias.append(tf.Variable(tf.zeros(self.no_nodes[p])))
 
-            print(f'Final test accuracy: {test_accuracy:>2.2f}')
+                if p == 0:
+                    linear_val = tf.matmul(self.x, self.weights[-1]) + self.bias[-1]
+                else:
+                    linear_val = tf.matmul(self.activation_val[-1], self.weights[-1]) + self.bias[-1]
 
-        tf.reset_default_graph()
+                if p == self.no_layers-2:
+                    self.activation_val.append(tf.nn.softmax(linear_val))
+                else:
+                    self.activation_val.append(tf.nn.sigmoid(linear_val))
+
+            lr = tf.placeholder(tf.float32)
+
+            cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=linear_val, labels=self.y))
+
+            optimizer = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
+
+            correct_predictions = tf.equal(tf.argmax(self.activation_val[-1], 1), tf.argmax(self.y, 1))
+            accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+            return(self.run_session(cross_entropy, optimizer, accuracy, lr))
+
+
+        def run_session(self, cross_entropy, optimizer, accuracy, lr):
+            t0 = time.time()
+            test_accuracy = 0.0
+            time_taken = 0.0
+            with tf.Session() as sess:
+                sess.run(tf.global_variables_initializer())
+
+                print(f'''
+                Running session with:
+                Epochs: {self.epochs:>3d}
+                Learning Rate: {self.learning_rate:>6.3f}
+                Batch Size: {self.batch_size:>3d}''')
+
+                for epoch in range(self.epochs-1):
+                    # print("Oye;oednf;jes[figjeokwvm['wiejrgfio")
+                    for batch in range(self.mnist.train.num_examples//self.batch_size):
+                        x_train, y_train = self.mnist.train.next_batch(self.batch_size)
+                        # print(batch)
+                        feed_dict = {
+                            self.x : x_train,
+                            self.y : y_train,
+                            lr : self.learning_rate }
+                        _, loss = sess.run([optimizer, cross_entropy], feed_dict = feed_dict)
+
+                    validation_acc = sess.run(accuracy, feed_dict= {
+                        self.x : self.mnist.validation.images,
+                        self.y : self.mnist.validation.labels})
+
+                    print(f'Epoch: {epoch:>5d}; Loss: {loss: >10.3f}; Validation Accuracy: {validation_acc:>1.4f}')
+
+                test_accuracy = sess.run(accuracy, feed_dict = {
+                    self.x : self.mnist.test.images,
+                    self.y : self.mnist.test.labels})
+                print(f'Final test accuracy: {test_accuracy:>2.2f}')
+                sess.close()
+            t1 = time.time()
+            time_taken = t1-t0
+            test_accuracy*=100
+            return(test_accuracy/time_taken)
 
 if __name__ == '__main__':
-    obj = Model(0.1, 20, 100, 2, 4, [784, 100, 100, 10])
-    obj.make_layer()
-
+    data = read_data_sets("MNIST_data/", one_hot=True)
+    obj = Model(0.1, 4, 784, 10, [100, 100], data)
+    obj2 = Model(0.095, 3, 784, 10, [100], data)
+    val = obj.make_layer()
+    val2 = obj2.make_layer()

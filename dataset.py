@@ -1,60 +1,26 @@
 import numpy as np
 import pandas as pd
 
-# class DataSetModel(object):
-# 	def __init__(self):
-# 		self.data = pd.read_csv("OVA_Lung.arff")
-# 		self.tissue_col = data.Tissue.tolist()
-# 		self.df = data.drop('Tissue', axis=1)
-# 		self.train_list, self.validation_list, self.test_list = [], [], []
-#         self.train_label, self.validation_label, self.test_label = [], [], []
-#         self.count_other, self.count_lung = 0, 0
+x = input("Enter filename")
 
-#     def create_dataset(self):
-#     	for ind,row in df.iterrows():
-# 			if data['Tissue'][ind] == 'Other':
-# 				if count_other <= 0.6*1419:
-# 					train_list.append(np.array(row.tolist())
-# 					train_label.append(tissue_col[ind])
-# 					count_other+=1
-# 				else if count_other > 0.6*1419 and count_other <= 0.8*1419:
-# 					validation_list.append(np.array(row.tolist()))
-# 					validation_label.append(tissue_col[ind])
-# 					count_other+=1
-# 				else:
-# 					test_list.append(np.array(np.array(row.tolist()))
-# 					test_label.append(tissue_col[ind])
-# 			else:
-# 				if count_lung <= 0.6*126:
-# 					train_list.append(np.array(row.tolist()))
-# 					train_label.append(tissue_col[ind])
-# 					count_lung+=1
-# 				else if count_lung > 0.6*126 and count_lung <= 0.8*126:
-# 					validation_list.append(np.array(np.array(row.tolist)))
-# 					validation_label.append(tissue_col[ind])
-# 					count_lung+=1
-# 				else:
-# 					test_list.append(np.array(row.tolist()))
-# 					test_label.append(tissue_col[ind])
-
-
-
-
-
-data = pd.read_csv("OVA_Lung.arff")
+data = pd.read_csv(x)
 tissue_col = data.Tissue.tolist()
-# tissue_col.tolist()
+set_types = list(set(data['Tissue'].tolist()))
+tot_cat1 = tissue_col.count(set_types[0])
+print("HEllo", tot_cat1)
+tot_cat2 = len(tissue_col) - tot_cat1
+print("Hello", tot_cat2)
 df = data.drop('Tissue', axis=1)
 train_list, validation_list, test_list = [], [], []
 train_label, validation_label, test_label = [], [], []
 count_other, count_lung = 0, 0
 for ind,row in df.iterrows():
 	if data['Tissue'][ind] == 'Other':
-		if count_other <= 0.6*1419:
+		if count_other <= 0.6*tot_cat1:
 			train_list.append(np.array(row))
 			train_label.append(np.array([0.0, 1.0]))
 			count_other+=1
-		elif count_other > 0.6*1419 and count_other <= 0.8*1419:
+		elif count_other > 0.6*tot_cat1 and count_other <= 0.8*tot_cat1:
 			validation_list.append(np.array(row))
 			validation_label.append(np.array([0.0, 1.0]))
 			count_other+=1
@@ -62,11 +28,11 @@ for ind,row in df.iterrows():
 			test_list.append(np.array(row))
 			test_label.append(np.array([0.0, 1.0]))
 	else:
-		if count_lung <= 0.6*126:
+		if count_lung <= 0.6*tot_cat2:
 			train_list.append(np.array(row))
 			train_label.append(np.array([1.0, 0.0]))
 			count_lung+=1
-		elif count_lung > 0.6*126 and count_lung <= 0.8*126:
+		elif count_lung > 0.6*tot_cat2 and count_lung <= 0.8*tot_cat2:
 			validation_list.append(np.array(np.array(row)))
 			validation_label.append(np.array([1.0, 0.0]))
 			count_lung+=1

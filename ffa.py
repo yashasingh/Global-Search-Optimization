@@ -2,7 +2,7 @@ import numpy as np
 import cost_functions
 import plot_graph
 from model import Model
-from dataset_util import read_data_sets
+import dataset
 
 class ffa(object):
     '''
@@ -20,7 +20,7 @@ class ffa(object):
         self.input_nodes = [input_nodes]
         self.logits = logits
         self.lightn = np.zeros(0)
-        self.data = read_data_sets("MNIST_data/", one_hot=True)
+        self.data = dataset
 
     def build_nodes(self):
         print("Building Nodes")
@@ -79,11 +79,11 @@ class ffa(object):
                     beta1 = beta0*np.exp(-1*self.gamma*r1**2)
                     beta2 = beta0*np.exp(-1*self.gamma*r2**2)
                     self.xn[i] = self.xn[i]*(1-beta1)+xo[j]*beta1+self.alpha*(np.random.rand()-0.5)
-                    self.yn[i] = self.yn[i]*(1-beta1)+yo[j]*beta1+self.alpha*(np.random.randint(low=self.rnges['h_layers_count_lower'], high=self.rnges['h_layers_count_upper'])-10)
+                    self.yn[i] = int(self.yn[i]*(1-beta1)+yo[j]*beta1+self.alpha*(np.random.rand()-0.5))
                     for k in range(self.yn[i]):
                         if k < original_layers_count:
                             if k<yo[j]:
-                                self.zn[i][k] = self.zn[i][k]*(1-beta2)+zo[j][k]*beta2+self.alpha*(np.random.randint(low=self.rnges['node_count_lower'], high=self.rnges['node_count_upper'])-0.5)
+                                self.zn[i][k] = int(self.zn[i][k]*(1-beta2)+zo[j][k]*beta2+self.alpha*(np.random.rand()-0.5))
                         elif k < yo[j]:
                             self.zn[i][k] = zo[j][k]
         print("INSIDE MOVE!")
@@ -97,6 +97,7 @@ class ffa(object):
     def firefly_simple(self,max_gen):
         self.initiate(max_gen)
         print("Inside ffa_simple")
+        f = open('log.txt', 'w')
         for i in range(max_gen):
             print(self.xn)
             print(self.yn)
@@ -109,6 +110,7 @@ class ffa(object):
             # lighto = lighto[::-1]         # for minima
             # indexes = indexes[::-1]       # for minima
             print("\n At step "+str(i)+"with values- ", qn)
+            f.write(str(qn) + '\n')
             xo = np.array([self.xn[j] for j in indexes])
             yo = np.array([self.yn[j] for j in indexes])
             zo = list(np.array([self.zn[j] for j in indexes]))
@@ -118,10 +120,11 @@ class ffa(object):
             # print(type(zo),type(self.zn))
             self.ffa_move(xo,yo,zo,lighto)
             print("\n\n Moved "+str(i))
+        f.close()
 
 
 if __name__ == '__main__':
-    rnges = {'learning_rate_lower':0.0001, 'learning_rate_upper':0.1, 'h_layers_count_upper':20, 'h_layers_count_lower':3, 'node_count_lower':10, 'node_count_upper':150}
+    rnges = {'learning_rate_lower':0.0001, 'learning_rate_upper':0.1, 'h_layers_count_upper':20, 'h_layers_count_lower':3, 'node_count_lower':200, 'node_count_upper':1500}
     # rnges = {'xlower':-5, 'xupper':5, 'ylower':-5, 'yupper':5}
-    obj = ffa(rnges=rnges, input_nodes=784, logits=10, population=5)
-    obj.firefly_simple(max_gen=20)
+    obj = ffa(rnges=rnges, input_nodes=10936, logits=2, population=200)
+    obj.firefly_simple(max_gen=200)

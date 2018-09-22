@@ -10,23 +10,23 @@ y = tf.placeholder(tf.float32, shape=[ None, 2])
 #x_reshaped = tf.reshape(x, shape=[ -1, 784 ])
 
 # Layer 1
-w1 = tf.Variable(tf.truncated_normal(shape=(10936, 100), mean=0, stddev=0.1))
-b1 = tf.Variable(tf.zeros([100]))
+w1 = tf.Variable(tf.truncated_normal(shape=(10936, 1000), mean=0, stddev=0.1))
+b1 = tf.Variable(tf.zeros([1000]))
 
 linear_1 = tf.matmul(x, w1) + b1
 
 act_1 = tf.nn.sigmoid(linear_1)
 
 # Layer 2
-w2 = tf.Variable(tf.truncated_normal(shape=(100, 100), mean=0, stddev=0.1))
-b2 = tf.Variable(tf.zeros([100]))
+w2 = tf.Variable(tf.truncated_normal(shape=(1000, 1000), mean=0, stddev=0.1))
+b2 = tf.Variable(tf.zeros([1000]))
 
 linear_2 = tf.matmul(act_1, w2) + b2
 
 act_2 = tf.nn.sigmoid(linear_2)
 
 # Layer 3
-w3 = tf.Variable(tf.truncated_normal(shape=(100, 2), mean=0, stddev=0.1))
+w3 = tf.Variable(tf.truncated_normal(shape=(1000, 2), mean=0, stddev=0.1))
 b3 = tf.Variable(tf.zeros([2]))
 
 logits = tf.matmul(act_2, w3) + b3
@@ -45,7 +45,7 @@ optimizer = tf.train.GradientDescentOptimizer(lr).minimize(cross_entropy)
 correct_predictions = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
 
-epochs = 50
+epochs = 500
 learning_rate = 0.1
 batch_size = 100
 

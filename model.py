@@ -1,13 +1,13 @@
 import tensorflow as tf
 import numpy as np
 import time
-from dataset_util import read_data_sets
+import dataset
 
 class Model(object):
     with tf.Graph().as_default():
         def __init__(self, learning_rate, no_layers, input_nodes, logits, no_nodes, data):
             self.learning_rate = learning_rate
-            self.epochs = 5
+            self.epochs = 500
             self.batch_size = 100
             self.display_step = 2
             self.no_layers = no_layers
@@ -19,7 +19,7 @@ class Model(object):
             self.weights = list()
             self.bias = []
             self.activation_val = [self.x]
-            self.mnist = data #read_data_sets("MNIST_data/", one_hot=True)
+            self.data = data #read_data_sets("MNIST_data/", one_hot=True)
 
 
         def make_layer(self):
@@ -72,24 +72,24 @@ class Model(object):
 
                 for epoch in range(self.epochs-1):
                     # print("Oye;oednf;jes[figjeokwvm['wiejrgfio")
-                    for batch in range(self.mnist.train.num_examples//self.batch_size):
-                        x_train, y_train = self.mnist.train.next_batch(self.batch_size)
-                        # print(batch)
-                        feed_dict = {
-                            self.x : x_train,
-                            self.y : y_train,
-                            lr : self.learning_rate }
-                        _, loss = sess.run([optimizer, cross_entropy], feed_dict = feed_dict)
+                    # for batch in range(self.mnist.train.num_examples//self.batch_size):
+                    x_train, y_train = self.data.train_list, self.data.train_label
+                    # print(batch)
+                    feed_dict = {
+                        self.x : x_train,
+                        self.y : y_train,
+                        lr : self.learning_rate }
+                    _, loss = sess.run([optimizer, cross_entropy], feed_dict = feed_dict)
 
                     validation_acc = sess.run(accuracy, feed_dict= {
-                        self.x : self.mnist.validation.images,
-                        self.y : self.mnist.validation.labels})
+                        self.x : self.data.validation_list,
+                        self.y : self.data.validation_label})
 
                     print(f'Epoch: {epoch:>5d}; Loss: {loss: >10.3f}; Validation Accuracy: {validation_acc:>1.4f}')
 
                 test_accuracy = sess.run(accuracy, feed_dict = {
-                    self.x : self.mnist.test.images,
-                    self.y : self.mnist.test.labels})
+                    self.x : self.data.test_list,
+                    self.y : self.data.test_label})
                 print(f'Final test accuracy: {test_accuracy:>2.2f}')
                 sess.close()
             t1 = time.time()
@@ -98,8 +98,6 @@ class Model(object):
             return(test_accuracy/time_taken)
 
 if __name__ == '__main__':
-    data = read_data_sets("MNIST_data/", one_hot=True)
-    obj = Model(0.1, 4, 784, 10, [100, 100], data)
-    obj2 = Model(0.095, 3, 784, 10, [100], data)
+    data = dataset
+    obj = Model(0.1, 4, 10936, 2, [1000, 1000], data)
     val = obj.make_layer()
-    val2 = obj2.make_layer()

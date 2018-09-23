@@ -97,8 +97,8 @@ class ffa(object):
     def firefly_simple(self,max_gen):
         self.initiate(max_gen)
         print("Inside ffa_simple")
-        f = open('log.txt', 'w')
         for i in range(max_gen):
+            f = open('log.txt', 'a+')
             print(self.xn)
             print(self.yn)
             print(self.zn)
@@ -120,11 +120,11 @@ class ffa(object):
             # print(type(zo),type(self.zn))
             self.ffa_move(xo,yo,zo,lighto)
             print("\n\n Moved "+str(i))
-        f.close()
+            f.close()
 
 
 if __name__ == '__main__':
     rnges = {'learning_rate_lower':0.0001, 'learning_rate_upper':0.1, 'h_layers_count_upper':20, 'h_layers_count_lower':3, 'node_count_lower':200, 'node_count_upper':1500}
     # rnges = {'xlower':-5, 'xupper':5, 'ylower':-5, 'yupper':5}
-    obj = ffa(rnges=rnges, input_nodes=10936, logits=2, population=200)
-    obj.firefly_simple(max_gen=200)
+    obj = ffa(rnges=rnges, input_nodes=10936, logits=2, population=150)
+    obj.firefly_simple(max_gen=100)

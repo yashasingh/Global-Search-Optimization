@@ -7,7 +7,7 @@ class Model(object):
     with tf.Graph().as_default():
         def __init__(self, learning_rate, no_layers, input_nodes, logits, no_nodes, data):
             self.learning_rate = learning_rate
-            self.epochs = 500
+            self.epochs = 250
             self.batch_size = 100
             self.display_step = 2
             self.no_layers = no_layers

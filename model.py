@@ -22,7 +22,7 @@ class Model(object):
             self.data = data #read_data_sets("MNIST_data/", one_hot=True)
 
 
-        def make_layer(self):
+        def make_layer(self, qn):
             for p in range(self.no_layers-1):
                 if p == 0:
                     self.weights.append(tf.Variable(tf.truncated_normal(shape=(self.input_nodes, self.no_nodes[p]), mean=0, stddev=0.1)))
@@ -54,7 +54,7 @@ class Model(object):
 
             correct_predictions = tf.equal(tf.argmax(self.activation_val[-1], 1), tf.argmax(self.y, 1))
             accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
-            return(self.run_session(cross_entropy, optimizer, accuracy, lr))
+            return(qn.append(self.run_session(cross_entropy, optimizer, accuracy, lr)))
 
 
         def run_session(self, cross_entropy, optimizer, accuracy, lr):

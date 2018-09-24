@@ -3,6 +3,8 @@ import cost_functions
 import plot_graph
 from model import Model
 import dataset
+import multiprocessing
+
 
 class ffa(object):
     '''
@@ -102,9 +104,15 @@ class ffa(object):
             print(self.xn)
             print(self.yn)
             print(self.zn)
-            qn = []
+            manager = multiprocessing.Manager()
+            qn = manager.list()
             for j in range(len(self.xn)):
-                qn.append(self.fireflies[j].make_layer())
+                # qn.append(self.fireflies[j].make_layer())
+                p = multiprocessing.Process(target=self.fireflies[j].make_layer, args=(qn, ))
+                p.start()
+                p.join()
+                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!",qn)
+                p.terminate()
             lighto = np.sort(qn)
             indexes = np.argsort(qn)
             # lighto = lighto[::-1]         # for minima
